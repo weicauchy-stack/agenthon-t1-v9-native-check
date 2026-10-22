@@ -11,6 +11,7 @@ results=[]
 def command(label,args,timeout=120):
  p=subprocess.run(args,capture_output=True,text=True,timeout=timeout)
  (WORK/(label+'.log')).write_text(p.stdout+p.stderr)
+ if p.returncode: print('FAILED_CHECK='+label+'\n'+p.stdout+p.stderr,flush=True)
  return p
 pull=command('pull',['docker','pull',IMAGE],300);assert pull.returncode==0,'Anonymous image pull failed'
 meta=json.loads(command('inspect',['docker','image','inspect',IMAGE]).stdout)[0]
@@ -30,13 +31,19 @@ results.append({'check':'numeric_imports','passed':True})
 p=run('cli-help',[IMAGE,'solve','--help']);assert p.returncode==0
 results.append({'check':'cli_help','passed':True})
 with urllib.request.urlopen(ARCHIVE_URL,timeout=90) as response:raw=response.read(64*1024*1024+1)
-assert len(raw)<=64*1024*1024 and hashlib.sha256(raw).hexdigest()==ARCHIVE_SHA256
+assert len(raw)<=64*1024*1024
+actual_archive_sha256=hashlib.sha256(raw).hexdigest()
+EXPECTED_UNIT_HASHES={'card.toml': '7efda91bb4336fb9632fe33027e4df9defd830fb3b42a0053c463217badc23ae', 'checks/test.sh': '039ed310de430f1941f419d0b17e17396676de113248ccab9195a43b36ea412c', 'checks/test_outputs.py': 'e3fd43cccf31a4e2d743098c20a5acf13a6be6cf422891f59ae3d40adec2bdd5', 'environment/Dockerfile': 'ee026bb23083d503f6ad58fdaee2bc889135b475fe3a830262b89632e3c69365', 'environment/data/options.parquet': '9e9464abd1aa3935ee4857f2112b6d4b79d60ca3e1ee2081ba2976f488e8f156', 'instruction.md': 'aa65cc320e5f3c01a759f951f80c39a1ccafb6a378cd08af2c46043bf5fa936a', 'manifest.json': 'f2394924c2ec10bed4d7fc2628ffdc1b6058fc38ec21f18b787bcc2e323e49e3'}
+observed_unit_hashes={}
 unit=WORK/'official-unit';unit.mkdir();needle='/units/t1-EXAMPLE-bs-greeks-pde/'
 with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as bundle:
  for member in bundle.getmembers():
   if needle in member.name and member.isfile():
    rel=Path(member.name.split(needle,1)[1]);assert not rel.is_absolute() and '..' not in rel.parts
-   target=unit/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(bundle.extractfile(member).read())
+   payload=bundle.extractfile(member).read(); observed_unit_hashes[str(rel)]=hashlib.sha256(payload).hexdigest()
+   target=unit/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(payload)
+assert observed_unit_hashes==EXPECTED_UNIT_HASHES,'Official exemplar contents differ from locked snapshot'
+print('OFFICIAL_ARCHIVE_CHECK='+json.dumps({'download_sha256':actual_archive_sha256,'original_archive_sha256':ARCHIVE_SHA256,'all_exemplar_files_match_locked_snapshot':True}),flush=True)
 assert (unit/'card.toml').is_file() and (unit/'manifest.json').is_file()
 staged=WORK/'staged-input';shutil.copytree(unit,staged,ignore=shutil.ignore_patterns('checks','solution','solutions','reference','references','reference_data'))
 scorer="""import json,pathlib,tomllib
@@ -58,7 +65,7 @@ for negative in (False,True):
  passed=(agent_rc==0 and (not verdict['admissible'] and verdict['gates'].get('g1_schema') is True and verdict['gates'].get('g3_domain_semantics') is False if negative else verdict['admissible']))
  results.append({'check':label+'_fixture_original_grader','passed':bool(passed),'agent_exit_code':agent_rc,'verdict':verdict})
  assert passed,label+' fixture failed'
-report={'passed':True,'native_amd64_validated':True,'host_machine':platform.machine(),'host_system':platform.system(),'image':IMAGE,'runtime_sources_match':True,'original_t1_archive_sha256':ARCHIVE_SHA256,'checks':results,'real_house':False,'model_performance_test':False,'paid_calls':0,'submitted':False}
+report={'passed':True,'native_amd64_validated':True,'host_machine':platform.machine(),'host_system':platform.system(),'image':IMAGE,'runtime_sources_match':True,'original_t1_archive_sha256':ARCHIVE_SHA256,'downloaded_archive_sha256':actual_archive_sha256,'official_exemplar_files_match_locked_snapshot':True,'checks':results,'real_house':False,'model_performance_test':False,'paid_calls':0,'submitted':False}
 (WORK/'native-validation.json').write_text(json.dumps(report,indent=2)+'\n')
 print('NATIVE_VALIDATION_RESULT='+json.dumps(report),flush=True)
 summary=os.environ.get('GITHUB_STEP_SUMMARY')
