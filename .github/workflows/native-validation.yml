@@ -1,1 +1,23 @@
-
+name: T1 v9 native amd64 validation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Fetch the exact committed validation scripts
+        env:
+          REPOSITORY: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -eu
+          for file in native_validate.py fixture_probe.py; do
+            curl --fail --retry 2 --proto '=https' --tlsv1.2 "https://raw.githubusercontent.com/$REPOSITORY/$COMMIT/$file" -o "$file"
+          done
+      - name: Validate frozen image on native Linux x86_64
+        run: python3 -u native_validate.py
