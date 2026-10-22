@@ -42,7 +42,7 @@ staged=WORK/'staged-input';shutil.copytree(unit,staged,ignore=shutil.ignore_patt
 scorer="""import json,pathlib,tomllib
 from qfbench2_common.manifest import verify_manifest
 from qfbench2_track_coding.scoring import build_verifier
-u=pathlib.Path('/unit');assert not verify_manifest(u)
+u=pathlib.Path('/input');assert not verify_manifest(u)
 c=tomllib.loads((u/'card.toml').read_text())
 ctx={'unit_dir':u,'output_dir':pathlib.Path('/candidate'),'agent_timeout_sec':c['agent']['timeout_sec'],'canary_registry':{c.get('contamination',{}).get('canary_guid','')}-{''}}
 v=build_verifier(ctx).run(ctx)
@@ -52,7 +52,7 @@ for negative in (False,True):
  label='negative' if negative else 'positive';out=WORK/(label+'-output');out.mkdir();out.chmod(0o777)
  p=run(label+'-agent',['-e','PROBE_NEGATIVE='+str(int(negative)),'--entrypoint','python',IMAGE,'/fixture_probe.py'],[str(staged)+':/input:ro',str(out)+':/output',str(out)+':/app/output',str(ROOT/'fixture_probe.py')+':/fixture_probe.py:ro'],450)
  agent_rc=p.returncode
- p=run(label+'-grader',['--entrypoint','python',IMAGE,'-c',scorer],[str(unit)+':/unit:ro',str(out)+':/candidate:ro'],330)
+ p=run(label+'-grader',['--entrypoint','python',IMAGE,'-c',scorer],[str(unit)+':/input:ro',str(out)+':/candidate:ro'],330)
  assert p.returncode==0,'Original checker did not complete'
  verdict=json.loads(p.stdout.strip().splitlines()[-1])
  passed=(agent_rc==0 and (not verdict['admissible'] and verdict['gates'].get('g1_schema') is True and verdict['gates'].get('g3_domain_semantics') is False if negative else verdict['admissible']))
