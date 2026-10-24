@@ -1,0 +1,20 @@
+{
+  "image": "docker.io/weimys/agenthon-t2@sha256:dbdfda86bff06975cf002406392e44c0780f39adb2568a1bcb33107396fc3355",
+  "runtime_sources": {
+    "finaldev/house.py": "dbc4830efec62c2c68d269921f4eef26b008f31c4b70cebefdd7ec180a0b1e87",
+    "tracks/t2/selected_config.json": "9be88fa1e109e23c57c89cad6e40a693efb7ce0622f508ba19d79d4f605566cb",
+    "tracks/t2/distribution.py": "0d32d1ad715d6cea8a7c56bb5155f2b27e8d5298950fe77582fe392d19971328",
+    "tracks/t2/adaptive.py": "aa26361308c683ef3549eb86ef6158ea4cabe41e47989ff0a5ae333fd72d9ea9",
+    "tracks/t2/context.py": "c497278692b829cb28611e3b8ff90a465634759228588fe17df1b677ca03bc45",
+    "tracks/t2/agent.py": "569c6d2a17d0f8af2b66068d3f58c6d57a69efe4ed8787f45825c9edba759bd0",
+    "tracks/t2/reasoning.py": "32a75358a5599cd45625f54ad4183580b002a0b1487ba70ef4cf3e04092331be",
+    "tracks/t2/candidate.py": "d7446db8986004e6d0fa4aeff89538f08a404f731109835e5f867c9a989215a8",
+    "tracks/t2/reasoning_v3.py": "bfd694a76104601f7d8ffe147ff4ca21db7e5f725b30bab1c3ebb972898b9b9c",
+    "tracks/t2/text_context_v3.py": "78c4964d9669c90335126ac98049dbbe2c621faaaae602bfdc9070b352a136f3",
+    "tracks/t2/m0.py": "15b8bd70abd1e6d4f29bb9638191671018d2c8ce1c4c7885b34d590ef93d24ff"
+  },
+  "official_archive_url": "https://codeload.github.com/Agenthon-2026/track2-forecasting-public/tar.gz/0ddb8896a942b9d44c64927f74755e7012c3e5f9",
+  "official_archive_sha256": "bcf1192e7799bd60fb16e0fd5ebc8493cb4692b0dd69f3343eae27784817af0b",
+  "default_text_mode": "house-v3",
+  "qa_only_no_private_files": true
+}
