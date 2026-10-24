@@ -1,0 +1,24 @@
+name: T2 v3 native amd64 validation
+on:
+  push:
+    branches: [main]
+    paths: [t2_native_validate.py, t2_house_probe.py, t2_contract_probe.py, t2-v3-release.json, .github/workflows/t2-v3-native.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  t2-native-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Fetch exact committed public QA scripts
+        env:
+          REPOSITORY: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -eu
+          for file in t2_native_validate.py t2_house_probe.py t2_contract_probe.py t2-v3-release.json; do
+            curl --fail --retry 2 --proto '=https' --tlsv1.2 "https://raw.githubusercontent.com/$REPOSITORY/$COMMIT/$file" -o "$file"
+          done
+      - name: Validate frozen v3 image on native Linux amd64
+        run: python3 -u t2_native_validate.py
