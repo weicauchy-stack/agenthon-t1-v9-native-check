@@ -34,7 +34,12 @@ jobs:
           path: |
             t3-v2/native-validation.json
             t3-v2/runtime-probe.json
+            t3-v2/native-resources.json
             t3-v2/reports/
             outputs/final_development/**/summary.json
             outputs/final_development/**/validation.json
             outputs/final_development/**/run.log
+            outputs/final_development/**/protocol.json
+            outputs/final_development/**/command.json
+            outputs/final_development/**/container-state.json
+            outputs/final_development/**/completion.json
